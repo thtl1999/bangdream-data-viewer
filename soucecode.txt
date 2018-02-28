@@ -1,0 +1,485 @@
+
+made with game maker 8.1
+
+Information about object: precontrol
+Sprite: 
+Solid: false
+Visible: false
+Depth: 0
+Persistent: false
+Parent: 
+Mask: 
+
+Create Event:
+
+execute code:
+
+global.se[1] = caster_load("data\normal.wav");
+global.se[2] = caster_load("data\flick.wav");
+global.se[3] = caster_load("data\normal.wav");
+global.se[4] = caster_load("data\normal.wav");
+global.se[5] = caster_load("data\normal.wav");
+global.se[6] = caster_load("data\normal.wav");
+global.se[7] = caster_load("data\normal.wav");
+global.se[8] = caster_load("data\normal.wav");
+global.se[9] = caster_load("data\normal.wav");
+global.se[10] = caster_load("data\normal.wav");
+global.se[11] = caster_load("data\normal.wav");
+global.se[12] = caster_load("data\flick.wav");
+global.se[13] = caster_load("data\flick.wav");
+
+global.musicname = "086";
+global.scoretype = "ex";
+global.musicname = get_string("music name code","086");
+global.music = caster_load("data\music\bgm"+global.musicname+".ogg");
+room_caption = "BanG! simulator";
+
+ini_open("settings.ini");
+bdistance = ini_read_real("Coord","Botdistance",445);
+bxtemp = ini_read_real("Coord","Botx",250);
+for (i=1;i<8;i+=1){global.bx[i] = bxtemp + bdistance*(i-1)}
+global.by = ini_read_real("Coord","Boty",640);
+tdistance = ini_read_real("Coord","Topdistance",13);
+txtemp = ini_read_real("Coord","Topx",1243);
+for (i=1;i<8;i+=1){global.tx[i] = txtemp + tdistance*(i-1)}
+global.ty = ini_read_real("Coord","Topy",42);
+
+global.sevol = ini_read_real("Music","Sevol",1)/100;
+global.musicvol = ini_read_real("Music","Musicvol",1)/100;
+global.notesize = ini_read_real("Display","Notesize",100)/100;
+global.offset = ini_read_real("Music","Offset",0);
+global.notespeed = ini_read_real("Display","Notespeed",10)/64;
+ini_close();
+
+//The bounding box order is written [left,right,top,bottom]. It should be [left,top,right,bottom]
+importsp = sprite_add("data\note_flick.png",1,0,0,0,0);
+if (importsp != -1)
+    sprite_replace(note_flick,"data\note_flick.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2); 
+importsp = sprite_add("data\note_normal.png",1,0,0,0,0);
+if (importsp != -1)
+    sprite_replace(note_normal,"data\note_normal.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2); 
+importsp = sprite_add("data\note_long.png",1,0,0,0,0);
+if (importsp != -1)
+    sprite_replace(note_long,"data\note_long.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2); 
+importsp = sprite_add("data\note_slide_among.png",1,0,0,0,0);
+if (importsp != -1)
+    sprite_replace(note_slide,"data\note_slide_among.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2); 
+importsp = sprite_add("data\note_skill.png",1,0,0,0,0);
+if (importsp != -1)
+    sprite_replace(note_skill,"data\note_skill.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+
+    
+//new sprite
+importsp = sprite_add("data\note_normal_1.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_normal1,"data\note_normal_1.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_normal_2.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_normal2,"data\note_normal_2.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_normal_3.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_normal3,"data\note_normal_3.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_normal_4.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_normal4,"data\note_normal_4.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_normal_5.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_normal5,"data\note_normal_5.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_normal_6.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_normal6,"data\note_normal_6.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_normal_7.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_normal7,"data\note_normal_7.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+    
+importsp = sprite_add("data\note_long_1.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_long1,"data\note_long_1.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_long_2.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_long2,"data\note_long_2.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_long_3.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_long3,"data\note_long_3.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_long_4.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_long4,"data\note_long_4.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_long_5.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_long5,"data\note_long_5.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_long_6.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_long6,"data\note_long_6.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_long_7.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_long7,"data\note_long_7.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+
+importsp = sprite_add("data\note_skill_1.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_skill1,"data\note_skill_1.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_skill_2.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_skill2,"data\note_skill_2.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_skill_3.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_skill3,"data\note_skill_3.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_skill_4.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_skill4,"data\note_skill_4.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_skill_5.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_skill5,"data\note_skill_5.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_skill_6.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_skill6,"data\note_skill_6.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_skill_7.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_skill7,"data\note_skill_7.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+
+importsp = sprite_add("data\note_flick_1.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_flick1,"data\note_flick_1.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_flick_2.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_flick2,"data\note_flick_2.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_flick_3.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_flick3,"data\note_flick_3.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_flick_4.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_flick4,"data\note_flick_4.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_flick_5.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_flick5,"data\note_flick_5.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_flick_6.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_flick6,"data\note_flick_6.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_flick_7.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_flick7,"data\note_flick_7.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+
+
+
+global.longnotewidth = sprite_get_width(note_long);
+    
+    /*
+global.noteindex[0] = note_normal;
+global.noteindex[1] = note_normal;
+global.noteindex[2] = note_flick;
+global.noteindex[3] = note_long;
+global.noteindex[4] = note_slide;
+global.noteindex[5] = note_normal;
+global.noteindex[6] = note_normal;
+global.noteindex[7] = note_normal;
+global.noteindex[8] = note_normal;
+global.noteindex[9] = note_normal;
+global.noteindex[10] = note_normal;
+global.noteindex[11] = note_normal;
+*/
+
+global.normalsprite[1] = note_normal1;
+global.normalsprite[2] = note_normal2;
+global.normalsprite[3] = note_normal3;
+global.normalsprite[4] = note_normal4;
+global.normalsprite[5] = note_normal5;
+global.normalsprite[6] = note_normal6;
+global.normalsprite[7] = note_normal7;
+
+global.longsprite[1] = note_long1;
+global.longsprite[2] = note_long2;
+global.longsprite[3] = note_long3;
+global.longsprite[4] = note_long4;
+global.longsprite[5] = note_long5;
+global.longsprite[6] = note_long6;
+global.longsprite[7] = note_long7;
+
+global.skillsprite[1] = note_skill1;
+global.skillsprite[2] = note_skill2;
+global.skillsprite[3] = note_skill3;
+global.skillsprite[4] = note_skill4;
+global.skillsprite[5] = note_skill5;
+global.skillsprite[6] = note_skill6;
+global.skillsprite[7] = note_skill7;
+
+global.flicksprite[1] = note_flick1;
+global.flicksprite[2] = note_flick2;
+global.flicksprite[3] = note_flick3;
+global.flicksprite[4] = note_flick4;
+global.flicksprite[5] = note_flick5;
+global.flicksprite[6] = note_flick6;
+global.flicksprite[7] = note_flick7;
+    
+//calculate
+global.sizecompare = bdistance/tdistance;
+global.laneheight = global.by-global.ty;
+h = 0;
+t =0;
+while(1)
+{
+    h = global.ty + 0.5*global.notespeed*t*t;
+    t = t+1;
+    if (h > global.by)
+    {
+        break;
+    }
+}
+global.notespeedtime = t
+//show_message(string(t));
+
+go to room mainroom with transition effect 
+
+Information about object: maincontrol
+Sprite: 
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Mask: 
+
+Create Event:
+
+execute code:
+
+room_caption = "BanG! simulator Beta";
+text = file_text_open_read("data\score\"+global.musicname+global.scoretype+".txt");
+
+global.musicoffset = file_text_read_real(text);
+file_text_readln(text);
+bpm = file_text_read_real(text);
+bpmob = instance_create(0,0,bpmtextob);
+bpmob.bpm = bpm;
+bpmob.alarm[0] = 1;
+bitsec = 6000/bpm
+global.combo = 0;
+global.bpmtext = 0;
+//prebpmsec = 0;
+
+slideatemp = -1;
+slidebtemp = -1;
+
+while (1)
+{
+    //check if finish
+    if (file_text_eof(text))
+    {
+        //show_message("finish");
+        break;
+    }
+    
+    file_text_readln(text);
+    currentbit = file_text_read_real(text);   //read
+    currenttype = file_text_read_real(text);
+    
+    if (currenttype == 20)//bpm change
+    {
+        global.offset += currentbit*bitsec;
+        bpm = file_text_read_real(text);
+        bitsec = 6000/bpm;
+        global.offset += - currentbit*bitsec;
+        bpmob = instance_create(0,0,bpmtextob);
+        bpmob.bpm = bpm;
+        bpmob.alarm[0] = bitsec*currentbit + global.offset - global.notespeedtime
+        continue;
+    }
+    
+    if (currenttype == 9 || currenttype == 14)//long note
+    {
+        longbit = file_text_read_real(text);
+        currentlane = file_text_read_real(text);
+        currentnote = instance_create(global.tx[currentlane],global.ty,noteob);
+        currentnote.lane = currentlane;
+        currentnote.alarm[0] = bitsec*currentbit + global.offset - global.notespeedtime;
+        currentnote.sprite_index = global.longsprite[currentlane];
+        currentnote.type = currenttype;
+        if (currenttype == 14){currentnote.type = 9;}
+        longnotetemp = currentnote;
+        
+        currentnote = instance_create(global.tx[currentlane],global.ty,noteob);//make second(end) note
+        currentnote.lane = currentlane;
+        currentnote.alarm[0] = bitsec*longbit + global.offset - global.notespeedtime;
+        if (currenttype == 14){currenttype = 2;}
+        currentnote.type = currenttype;
+        currentnote.child = longnotetemp;
+        currentnote.childlane = longnotetemp.lane;
+    }
+    else    //not long note
+    {
+        currentlane = file_text_read_real(text);
+        currentnote = instance_create(global.tx[currentlane],global.ty,noteob);
+        currentnote.type = currenttype;
+        currentnote.lane = currentlane
+        currentnote.alarm[0] = bitsec*currentbit + global.offset - global.notespeedtime;
+        if (currenttype == 0) {currentnote.alarm[0] += global.notespeedtime + global.musicoffset -global.offset;}
+        
+        if (currenttype == 4 || currenttype == 5 || currenttype == 12)
+        {if (slideatemp != -1){
+        currentnote.child = slideatemp; currentnote.childlane = slideatemp.lane;}}
+        if (currenttype == 7 || currenttype == 8 || currenttype == 13)
+        {if (slidebtemp != -1){
+        currentnote.child = slidebtemp; currentnote.childlane = slidebtemp.lane;}}
+        if (currenttype == 3 || currenttype == 4)
+        {   if (slideatemp == -1){currenttype = 3;}
+            slideatemp = currentnote;}
+        if (currenttype == 6 || currenttype == 7)
+        {   if (slidebtemp == -1){currenttype = 6;}
+            slidebtemp = currentnote;}
+        
+        //if slide end flick, start slide_among(4 or 7)
+        if (currenttype == 12)
+        {slideatemp = -1;}
+        if (currenttype == 13)
+        {slidebtemp = -1;}
+        
+    }
+    
+    
+    //show_message(string(currentbit)+string(currenttype)+string(currentlane));
+    
+    //select sprite
+    if (currenttype == 0){currentnote.sprite_index = note_normal;}
+    if (currenttype == 1){currentnote.sprite_index = global.normalsprite[currentlane];}
+    if (currenttype == 2){currentnote.sprite_index = global.flicksprite[currentlane];}
+    if (currenttype == 3){currentnote.sprite_index = global.longsprite[currentlane];}
+    if (currenttype == 4){currentnote.sprite_index = note_slide;}
+    if (currenttype == 5){currentnote.sprite_index = global.longsprite[currentlane];}
+    if (currenttype == 6){currentnote.sprite_index = global.longsprite[currentlane];}
+    if (currenttype == 7){currentnote.sprite_index = note_slide;}
+    if (currenttype == 8){currentnote.sprite_index = global.longsprite[currentlane];}
+    if (currenttype == 9){currentnote.sprite_index = global.longsprite[currentlane];}
+    if (currenttype == 10){currentnote.sprite_index = global.normalsprite[currentlane];}
+    if (currenttype == 11){currentnote.sprite_index = global.skillsprite[currentlane];}
+    if (currenttype == 12){currentnote.sprite_index = global.flicksprite[currentlane];}
+    if (currenttype == 13){currentnote.sprite_index = global.flicksprite[currentlane];}
+    
+    //show_message(string_char_at(string11,4));
+}
+
+file_text_close(text);
+
+Draw Event:
+
+execute code:
+
+//draw_text_color
+draw_text_color(4*room_width/5,20+room_height/3,"bpm:"+string(global.bpmtext),c_white,c_white,c_white,c_white,1);
+draw_text_color(4*room_width/5,-20+room_height/3,"combo:"+string(global.combo),c_white,c_white,c_white,c_white,1);
+
+
+Information about object: noteob
+Sprite: 
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Mask: 
+
+Create Event:
+
+execute code:
+
+id.visible = 1;
+start = 0;
+depth = -1;
+child = 0;
+drawstart = 0;
+w = (global.longnotewidth/3.2)*global.notesize;
+percent = 0;
+t = 0;
+
+
+Alarm Event for alarm 0:
+
+execute code:
+
+if (type != 0)
+{
+    id.visible = 1;
+    xmove = global.bx[lane]-global.tx[lane];
+    t = 0;
+    start = 1;
+}
+else//music start object
+{
+    alarm[1] = 1;
+}
+depth = 10;
+
+Alarm Event for alarm 1:
+
+execute code:
+
+caster_play(global.music,global.musicvol,1);
+
+Step Event:
+
+execute code:
+
+if (start == 1)
+{
+    percent = (y-global.ty)/global.laneheight;
+    x = global.tx[lane]+xmove*percent;
+    y = global.ty + global.notespeed*0.5*t*t
+    //image_xscale = percent*(global.notesize);
+    //image_yscale = percent*(global.notesize);
+    t = t+1;
+    
+    if (y > global.by)
+    {
+        caster_play(global.se[type],global.sevol,1);
+        //show_message(string(t));
+        if (child != 0)
+        {with (child){instance_destroy();}}
+        global.combo += 1;
+        instance_destroy();
+    }
+}
+
+Draw Event:
+
+execute code:
+
+//draw_sprite(sprite_index,-1,x,y);
+if (start == 1)
+{
+draw_sprite_ext(sprite_index,-1,x,y,percent*global.notesize,percent*global.notesize,0,c_white,1);
+}
+
+if (!instance_exists(child) && child != 0)
+{
+    child = instance_create(global.bx[childlane],global.by,shadowob);
+    child.hspeed = (global.bx[lane]-child.x)/(global.notespeedtime - t);
+    
+}
+
+if (instance_exists(child) && child != 0)
+{
+    if (child.start == 1)
+    {
+        //161,240,181
+        //line 118,234,147
+        
+        draw_set_color(make_color_rgb(118,234,147));
+        draw_set_alpha(0.5);
+        draw_triangle(x-(percent*w),y,x+(percent*w),y,child.x-(child.percent*w),child.y,0);
+        draw_triangle(child.x-(child.percent*w),child.y,child.x+(child.percent*w),child.y,x+(percent*w),y,0);
+        draw_set_alpha(0.5);
+        draw_line_width(x-(percent*w),y,child.x-(child.percent*w),child.y,3);
+        draw_line_width(x+(percent*w),y,child.x+(child.percent*w),child.y,3);
+    }
+}
+
+
+Information about object: shadowob
+Sprite: 
+Solid: false
+Visible: false
+Depth: 0
+Persistent: false
+Parent: 
+Mask: 
+
+Create Event:
+
+set variable start to 1
+set variable percent to 1
+Step Event:
+
+execute code:
+
+if (x > global.bx[7] || x < global.bx[1])
+{hspeed = 0;}
+
+
+
+Information about object: bpmtextob
+Sprite: 
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Mask: 
+
+Alarm Event for alarm 0:
+
+execute code:
+
+global.bpmtext = bpm;
+
+
+
+
