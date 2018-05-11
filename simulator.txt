@@ -48,7 +48,7 @@ global.sevol = ini_read_real("Music","Sevol",1)/100;
 global.musicvol = ini_read_real("Music","Musicvol",1)/100;
 global.notesize = ini_read_real("Display","Notesize",100)/100;
 global.offset = ini_read_real("Music","Offset",0);
-global.notespeed = ini_read_real("Display","Notespeed",10)/64;
+global.notespeed = ini_read_real("Display","Notespeed",10)/6400;
 ini_close();
 
 //The bounding box order is written [left,right,top,bottom]. It should be [left,top,right,bottom]
@@ -134,7 +134,7 @@ if (importsp != -1) sprite_replace(note_flick7,"data\note_flick_7.png",1,0,0,spr
 
 global.longnotewidth = sprite_get_width(note_long);
     
-    /*
+/*
 global.noteindex[0] = note_normal;
 global.noteindex[1] = note_normal;
 global.noteindex[2] = note_flick;
@@ -181,14 +181,39 @@ global.flicksprite[5] = note_flick5;
 global.flicksprite[6] = note_flick6;
 global.flicksprite[7] = note_flick7;
     
-//calculate
+//pre calculate
 global.sizecompare = bdistance/tdistance;
 global.laneheight = global.by-global.ty;
+
+h = 0;
+t =0;
+i = 0;
+//calculate x,y precoor
+for(t=0;h < global.by;t=t+1)
+{
+    h = global.ty + 0.5*global.notespeed*t*t*t;
+    global.yprecoor[t] = h;
+    percent = (h-global.ty)/global.laneheight;
+    global.widthpercent[t] = (global.longnotewidth/3.2)*global.notesize*percent; //this decide width of long/slide thickness
+    global.notemovepercent[t] = percent;
+    global.realnotesize[t] = global.notemovepercent[t]*global.notesize;
+    for(i=1;i<=7;i=i+1)
+    {
+        xmove = global.bx[i] - global.tx[i];
+        global.xprecoor[i,t] = global.tx[i]+xmove*percent;
+        //global.xsubwp[i,t] = global.xprecoor[i,t] - global.widthpercent[t];
+        //global.xaddwp[i,t] = global.xprecoor[i,t] + global.widthpercent[t];
+    }
+}
+global.notespeedtime = t;
+
+/*
+//(old)calculate note timing
 h = 0;
 t =0;
 while(1)
 {
-    h = global.ty + 0.5*global.notespeed*t*t;
+    h = global.ty + 0.5*global.notespeed*t*t*t;
     t = t+1;
     if (h > global.by)
     {
@@ -196,9 +221,19 @@ while(1)
     }
 }
 global.notespeedtime = t
+//note timing calculate finish*/
+
+/* function in note object for coding
+percent = (y-global.ty)/global.laneheight;
+x = global.tx[lane]+xmove*percent;
+y = global.ty + global.notespeed*0.5*t*t*t;
+xmove = global.bx[lane]-global.tx[lane];
+w = (global.longnotewidth/3.2)*global.notesize;
+*/
 //show_message(string(t));
 
 go to room mainroom with transition effect 
+______________________________________________________
 
 Information about object: maincontrol
 Sprite: 
@@ -213,7 +248,7 @@ Create Event:
 
 execute code:
 
-room_caption = "BanG! simulator Beta";
+room_caption = "BanG! simulator Beta4";
 text = file_text_open_read("data\score\"+global.musicname+global.scoretype+".txt");
 
 global.musicoffset = file_text_read_real(text);
@@ -225,10 +260,13 @@ bpmob.alarm[0] = 1;
 bitsec = 6000/bpm
 global.combo = 0;
 global.bpmtext = 0;
+versionoffset = 1;  //offset changes when code changes
 //prebpmsec = 0;
 
 slideatemp = -1;
 slidebtemp = -1;
+for(i=0;i<8;i=i+1)
+    longnotechildtemp[i] = -1;
 
 while (1)
 {
@@ -243,7 +281,7 @@ while (1)
     currentbit = file_text_read_real(text);   //read
     currenttype = file_text_read_real(text);
     
-    if (currenttype == 20)//bpm change
+    if (currenttype == 20)//bpm change and make bpm display object
     {
         global.offset += currentbit*bitsec;
         bpm = file_text_read_real(text);
@@ -261,7 +299,7 @@ while (1)
         currentlane = file_text_read_real(text);
         currentnote = instance_create(global.tx[currentlane],global.ty,noteob);
         currentnote.lane = currentlane;
-        currentnote.alarm[0] = bitsec*currentbit + global.offset - global.notespeedtime;
+        currentnote.alarm[0] = versionoffset + bitsec*currentbit + global.offset - global.notespeedtime;
         currentnote.sprite_index = global.longsprite[currentlane];
         currentnote.type = currenttype;
         if (currenttype == 14){currentnote.type = 9;}
@@ -269,7 +307,7 @@ while (1)
         
         currentnote = instance_create(global.tx[currentlane],global.ty,noteob);//make second(end) note
         currentnote.lane = currentlane;
-        currentnote.alarm[0] = bitsec*longbit + global.offset - global.notespeedtime;
+        currentnote.alarm[0] = versionoffset + bitsec*longbit + global.offset - global.notespeedtime;
         if (currenttype == 14){currenttype = 2;}
         currentnote.type = currenttype;
         currentnote.child = longnotetemp;
@@ -279,28 +317,56 @@ while (1)
     {
         currentlane = file_text_read_real(text);
         currentnote = instance_create(global.tx[currentlane],global.ty,noteob);
-        currentnote.type = currenttype;
-        currentnote.lane = currentlane
-        currentnote.alarm[0] = bitsec*currentbit + global.offset - global.notespeedtime;
-        if (currenttype == 0) {currentnote.alarm[0] += global.notespeedtime + global.musicoffset -global.offset;}
         
+        //slide child make
         if (currenttype == 4 || currenttype == 5 || currenttype == 12)
-        {if (slideatemp != -1){
-        currentnote.child = slideatemp; currentnote.childlane = slideatemp.lane;}}
+            {if (slideatemp != -1){
+                currentnote.child = slideatemp; currentnote.childlane = slideatemp.lane;}}
         if (currenttype == 7 || currenttype == 8 || currenttype == 13)
-        {if (slidebtemp != -1){
-        currentnote.child = slidebtemp; currentnote.childlane = slidebtemp.lane;}}
+            {if (slidebtemp != -1){
+                currentnote.child = slidebtemp; currentnote.childlane = slidebtemp.lane;}}
+        
+        //newtype longnote child make and give child
+        if (currenttype == 21)
+            longnotechildtemp[currentlane] = currentnote;
+        if (currenttype == 25 || currenttype == 26)
+        {
+            currentnote.child = longnotechildtemp[currentlane];
+            currentnote.childlane = currentlane;
+            longnotechildtemp = -1;
+        }
+        
+        //newtype longnote change notetype
+        if (currenttype == 21)
+            currenttype = 9;
+        if (currenttype == 25)
+            currenttype = 9;
+        if (currenttype == 26)
+            currenttype = 2;
+        
+        
+        //type4 and 6 for error correction (start slide with slide_among)
         if (currenttype == 3 || currenttype == 4)
         {   if (slideatemp == -1){currenttype = 3;}
-            slideatemp = currentnote;}
+                slideatemp = currentnote;}
         if (currenttype == 6 || currenttype == 7)
         {   if (slidebtemp == -1){currenttype = 6;}
-            slidebtemp = currentnote;}
+                slidebtemp = currentnote;}
         
-        //if slide end flick, start slide_among(4 or 7)
-        if (currenttype == 12)
+        currentnote.type = currenttype;
+        currentnote.lane = currentlane;
+        currentnote.alarm[0] = versionoffset + bitsec*currentbit + global.offset - global.notespeedtime;
+        
+        
+        
+        //music
+        if (currenttype == 0) {currentnote.alarm[0] += global.notespeedtime + global.musicoffset -global.offset;}
+        
+                
+        //error correction (start slide with slide_among)
+        if (currenttype == 12 || currenttype == 5)
         {slideatemp = -1;}
-        if (currenttype == 13)
+        if (currenttype == 13 || currenttype == 8)
         {slidebtemp = -1;}
         
     }
@@ -323,6 +389,9 @@ while (1)
     if (currenttype == 11){currentnote.sprite_index = global.skillsprite[currentlane];}
     if (currenttype == 12){currentnote.sprite_index = global.flicksprite[currentlane];}
     if (currenttype == 13){currentnote.sprite_index = global.flicksprite[currentlane];}
+    //if (currenttype == 21){currentnote.sprite_index = global.longsprite[currentlane];}
+    //if (currenttype == 25){currentnote.sprite_index = global.longsprite[currentlane];}
+    //if (currenttype == 26){currentnote.sprite_index = global.flicksprite[currentlane];}
     
     //show_message(string_char_at(string11,4));
 }
@@ -337,6 +406,7 @@ execute code:
 draw_text_color(4*room_width/5,20+room_height/3,"bpm:"+string(global.bpmtext),c_white,c_white,c_white,c_white,1);
 draw_text_color(4*room_width/5,-20+room_height/3,"combo:"+string(global.combo),c_white,c_white,c_white,c_white,1);
 
+______________________________________________________
 
 Information about object: noteob
 Sprite: 
@@ -356,7 +426,8 @@ start = 0;
 depth = -1;
 child = 0;
 drawstart = 0;
-w = (global.longnotewidth/3.2)*global.notesize;
+//w = (global.longnotewidth/3.2)*global.notesize;
+wp = global.widthpercent[0];
 percent = 0;
 t = 0;
 
@@ -368,7 +439,7 @@ execute code:
 if (type != 0)
 {
     id.visible = 1;
-    xmove = global.bx[lane]-global.tx[lane];
+    //xmove = global.bx[lane]-global.tx[lane];
     t = 0;
     start = 1;
 }
@@ -390,14 +461,20 @@ execute code:
 
 if (start == 1)
 {
-    percent = (y-global.ty)/global.laneheight;
-    x = global.tx[lane]+xmove*percent;
-    y = global.ty + global.notespeed*0.5*t*t
+
+    
+    //percent = (y-global.ty)/global.laneheight;
+    //x = global.tx[lane]+xmove*percent;
+    //y = global.ty + global.notespeed*0.5*t*t*t;
     //image_xscale = percent*(global.notesize);
     //image_yscale = percent*(global.notesize);
+    x = global.xprecoor[lane,t];
+    y = global.yprecoor[t];
+    percent = global.notemovepercent[t];
+    wp = global.widthpercent[t]; //widthpercent w*percent
     t = t+1;
     
-    if (y > global.by)
+    if (t == global.notespeedtime)
     {
         caster_play(global.se[type],global.sevol,1);
         //show_message(string(t));
@@ -405,7 +482,10 @@ if (start == 1)
         {with (child){instance_destroy();}}
         global.combo += 1;
         instance_destroy();
+        exit;
     }
+    
+    
 }
 
 Draw Event:
@@ -415,14 +495,13 @@ execute code:
 //draw_sprite(sprite_index,-1,x,y);
 if (start == 1)
 {
-draw_sprite_ext(sprite_index,-1,x,y,percent*global.notesize,percent*global.notesize,0,c_white,1);
+    draw_sprite_ext(sprite_index,-1,x,y,global.realnotesize[t],global.realnotesize[t],0,c_white,1);
 }
 
 if (!instance_exists(child) && child != 0)
 {
     child = instance_create(global.bx[childlane],global.by,shadowob);
-    child.hspeed = (global.bx[lane]-child.x)/(global.notespeedtime - t);
-    
+    child.hspeed = (global.bx[lane]-child.x)/(global.notespeedtime - t + alarm[0]);
 }
 
 if (instance_exists(child) && child != 0)
@@ -432,16 +511,23 @@ if (instance_exists(child) && child != 0)
         //161,240,181
         //line 118,234,147
         
+        xsubwp = x - wp;
+        xaddwp = x + wp;
+        
         draw_set_color(make_color_rgb(118,234,147));
         draw_set_alpha(0.5);
-        draw_triangle(x-(percent*w),y,x+(percent*w),y,child.x-(child.percent*w),child.y,0);
-        draw_triangle(child.x-(child.percent*w),child.y,child.x+(child.percent*w),child.y,x+(percent*w),y,0);
+        draw_triangle(xsubwp,y,xaddwp,y,child.x-(child.wp),child.y,0);
+        draw_triangle(child.x-(child.wp),child.y,child.x+(child.wp),child.y,xaddwp,y,0);
+        
         draw_set_alpha(0.5);
-        draw_line_width(x-(percent*w),y,child.x-(child.percent*w),child.y,3);
-        draw_line_width(x+(percent*w),y,child.x+(child.percent*w),child.y,3);
+        draw_line_width(xsubwp,y,child.x-(child.wp),child.y,3);
+        draw_line_width(xaddwp,y,child.x+(child.wp),child.y,3);
     }
 }
 
+
+
+______________________________________________________
 
 Information about object: shadowob
 Sprite: 
@@ -456,6 +542,7 @@ Create Event:
 
 set variable start to 1
 set variable percent to 1
+set variable wp to global.widthpercent[global.notespeedtime -1]
 Step Event:
 
 execute code:
@@ -463,7 +550,7 @@ execute code:
 if (x > global.bx[7] || x < global.bx[1])
 {hspeed = 0;}
 
-
+______________________________________________________
 
 Information about object: bpmtextob
 Sprite: 
@@ -480,6 +567,4 @@ execute code:
 
 global.bpmtext = bpm;
 
-
-
-
+______________________________________________________
