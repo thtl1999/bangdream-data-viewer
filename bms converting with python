@@ -6,7 +6,7 @@ import re
 import json
 import urllib.request
 
-musicnamecode = '107'
+musicnamecode = '106'
 
 #get bms file from bangdream database
 if not os.path.isfile('scorebms/'+musicnamecode+'ex.txt'):
@@ -25,7 +25,7 @@ else:
 
 #parse bms data
 fr = open("scorebms/"+musicnamecode+'ex.txt','r')
-fw = open("myscore/" + musicnamecode + ".txt", 'w')
+fw = open("myscore/" + musicnamecode + "ex.txt", 'w')
 
 se = {}
 #header read
@@ -134,6 +134,8 @@ while True:
                 note[i]['noteproperty'] = 'feverstart'
             if se[note[i]['notese']] == 'cmd_fever_end.wav':
                 note[i]['noteproperty'] = 'feverend'
+            if se[note[i]['notese']] == 'cmd_fever_checkpoint.wav':
+                note[i]['noteproperty'] = 'fevercheck'
 
 
         elif note[i]['notetype'] == 'long':     #long
@@ -180,12 +182,18 @@ while True:
             if se[note[i]['notese']] == 'slide_end_a.wav':
                 note[i]['noteproperty'] = 'none'
                 note[i]['notetype'] = 'slideaend'
+            if se[note[i]['notese']] == 'slide_end_flick_a.wav':
+                note[i]['noteproperty'] = 'none'
+                note[i]['notetype'] = 'slideaendflick'
             if se[note[i]['notese']] == 'slide_b.wav':
                 note[i]['noteproperty'] = 'none'
                 note[i]['notetype'] = 'slideb'
             if se[note[i]['notese']] == 'slide_end_b.wav':
                 note[i]['noteproperty'] = 'none'
                 note[i]['notetype'] = 'slidebend'
+            if se[note[i]['notese']] == 'slide_end_flick_b.wav':
+                note[i]['noteproperty'] = 'none'
+                note[i]['notetype'] = 'slidebendflick'
             if se[note[i]['notese']] == 'fever_note.wav':
                 note[i]['noteproperty'] = 'fever'
                 note[i]['notetype'] = 'normal'
@@ -214,6 +222,48 @@ for i in range(len(sortednote)):
 
     sortednote[i]['timing'] = savedtiming + (sortednote[i]['notebeat']-savedbeat)*bitsec
     print(sortednote[i])
+
+if True:    #convert to my simulator
+    fw.write('46\n'+str(bpm))
+
+    for i in range(len(sortednote)):
+        b = str(sortednote[i]['notebeat'])
+        if sortednote[i]['noteproperty'] == 'bgm':
+            fw.write('\n0/0/0')
+            continue
+        if sortednote[i]['noteproperty'] == 'bpmchange':
+            fw.write('\n'+ b + '/20/' + str(sortednote[i]['notese']))
+            continue
+        if sortednote[i]['notelane'] == 0:
+            continue
+
+        if sortednote[i]['notetype'] == 'normal':
+            t = '/1/'
+        if sortednote[i]['notetype'] == 'flick':
+            t = '/2/'
+        if sortednote[i]['notetype'] == 'longstart':
+            t = '/21/'
+        if sortednote[i]['notetype'] == 'longend':
+            t = '/25/'
+        if sortednote[i]['notetype'] == 'longflick':
+            t = '/26/'
+        if sortednote[i]['notetype'] == 'slidea':
+            t = '/4/'
+        if sortednote[i]['notetype'] == 'slideaend':
+            t = '/5/'
+        if sortednote[i]['notetype'] == 'slideaendflick':
+            t = '/12/'
+        if sortednote[i]['notetype'] == 'slideb':
+            t = '/7/'
+        if sortednote[i]['notetype'] == 'slidebend':
+            t = '/8/'
+        if sortednote[i]['notetype'] == 'slidebendflick':
+            t = '/13/'
+
+        fw.write('\n' + b + t + str(sortednote[i]['notelane']))
+
+
+
 
 fr.close()
 fw.close()
