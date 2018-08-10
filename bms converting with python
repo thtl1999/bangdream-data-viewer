@@ -1,33 +1,92 @@
+#python 3.5.3
 import os
 import requests
 import sys
 import fileinput
 import re
 import json
-import urllib.request
+#import urllib.request
 
-musicnamecode = '106'
+#musicnamecode = '106'
+#pyinstaller --onefile  getmusicscore.py
 
-#get bms file from bangdream database
-if not os.path.isfile('scorebms/'+musicnamecode+'ex.txt'):
-    print('download bms from bangdream database')
-    req = requests.get('https://api.bangdream.ga/v1/jp/music/'+musicnamecode)
-    data = req.json()
-    musicnamestring = data["chartAssetBundleName"]
-    req = requests.get('https://res.bangdream.ga/assets/musicscore/'+musicnamecode+'_'+musicnamestring+'_expert.txt')
-    html = req.text
-    f1 = open('scorebms/'+musicnamecode+'ex.txt','w')
-    f1.write(html)
-    f1.close()
+musicnamecode2 = input("write code")
+
+musicnamecode = musicnamecode2[0:3]
+
+print(musicnamecode2)
+
+if musicnamecode2.find('music') != -1:
+    if not os.path.isfile('data/music/bgm'+musicnamecode+'.mp3'):
+        f5 = open('data/music/bgm'+musicnamecode+'.mp3','wb')
+        #urllib.request.urlretrieve('https://res.bangdream.ga/assets/sound/bgm'+musicname+'.mp3', 'music/'+musicname+'.mp3')
+        #responsemp3 = urllib.request.urlretrieve('http://res.bangdream.ga/assets/sound/bgm'+musicname+'.mp3','music/'+musicname+'.mp3')
+        #mp3data = responsemp3.read()
+        #f5.close()
+        mp3down = requests.get('http://res.bandori.ga/assets/sound/bgm'+musicnamecode+'.mp3')
+        f5.write(mp3down.content)
+        f5.close()
 else:
-    print("alreay have music score")
+    musicnamecode = musicnamecode2
+
+#check if special
+if musicnamecode.find('+') != -1:
+    isspecialchart = 1
+    musicnamecode = musicnamecode[0:3]
+else:
+    isspecialchart = 0
+
+if isspecialchart == 1: #check if request special
+    # get bms file from bangdream database
+    isspecialchart = 1
+    if not os.path.isfile('scorebms/' + musicnamecode + 'sp.txt'):
+        print('download bms from bangdream database')
+        req = requests.get('https://api.bandori.ga/v1/jp/music/' + musicnamecode)
+        data = req.json()
+        musicnamestring = data["chartAssetBundleName"]
+        req = requests.get(
+            'https://res.bandori.ga/assets/musicscore/' + musicnamecode + '_' + musicnamestring + '_special.txt')
+        html = req.text
+        f1 = open('scorebms/' + musicnamecode + 'sp.txt', 'w')
+        f1.write(html)
+        f1.close()
+    else:
+        print("alreay have music score")
+else:
+    #get bms file from bangdream database
+    if not os.path.isfile('scorebms/'+musicnamecode+'ex.txt'):
+        print('download bms from bangdream database')
+        req = requests.get('https://api.bandori.ga/v1/jp/music/'+musicnamecode)
+        data = req.json()
+        musicnamestring = data["chartAssetBundleName"]
+        req = requests.get('https://res.bandori.ga/assets/musicscore/'+musicnamecode+'_'+musicnamestring+'_expert.txt')
+        html = req.text
+        f1 = open('scorebms/'+musicnamecode+'ex.txt','w')
+        f1.write(html)
+        f1.close()
+    else:
+        print("alreay have music score")
 
 
 #parse bms data
-fr = open("scorebms/"+musicnamecode+'ex.txt','r')
-fw = open("myscore/" + musicnamecode + "ex.txt", 'w')
+if isspecialchart == 0:
+    fr = open("scorebms/"+musicnamecode+'ex.txt','r')
+    fw = open("data/score/" + musicnamecode + "ex.txt", 'w')
+else:
+    fr = open("scorebms/"+musicnamecode+'sp.txt','r')
+    fw = open("data/score/" + musicnamecode + "sp.txt", 'w')
 
 se = {}
+
+print(fr.encoding)
+
+if fr.encoding == 'cp949':
+    fr.close()
+    if isspecialchart == 0:
+        fr = open("scorebms/"+musicnamecode+'ex.txt','r', encoding='UTF8')
+    else:
+        fr = open("scorebms/"+musicnamecode+'sp.txt','r', encoding='UTF8')
+
 #header read
 #it should be modified to handle bpm over 256
 while True:
@@ -58,6 +117,7 @@ note = []   #all the notes will be put here. note has notese, notetype, notebeat
 #notelane: lane of this note noteproperty: decide skill, fever, extra notetiming: calculate time with bpm and notebeat
 
 noteindex = 0   #to indicate note number
+errorinbms = 0
 while True:
     line = fr.readline()
     if not line: break
@@ -120,6 +180,17 @@ while True:
     for i in range(thislinenoteindex , noteindex):
         tempbeat = nowbeat + 1/beatnumber*note[i]['notebeat'] #calculate notebeat
         note[i]['notebeat'] = tempbeat
+        print(note[i])
+
+        # error correction
+        if not note[i]['notese'] in se:
+            print('error')
+            errorinbms = 1
+            #note[i]['noteproperty'] = 'none'
+            for secode, sename in se.items():
+                if sename == 'bd.wav':
+                    note[i]['notese'] = secode
+            print(note[i]['notese'])
 
 
         if note[i]['notelane'] == 0:                #handle special type of note
@@ -127,6 +198,8 @@ while True:
                 note[i]['noteproperty'] = 'bpmchange'
                 continue
             if note[i]['notese'] == '01':
+                note[i]['noteproperty'] = 'bgm'
+            if se[note[i]['notese']] == se['01']: #very special case like music 085
                 note[i]['noteproperty'] = 'bgm'
             if se[note[i]['notese']] == 'cmd_fever_ready.wav':
                 note[i]['noteproperty'] = 'feverready'
@@ -136,6 +209,7 @@ while True:
                 note[i]['noteproperty'] = 'feverend'
             if se[note[i]['notese']] == 'cmd_fever_checkpoint.wav':
                 note[i]['noteproperty'] = 'fevercheck'
+
 
 
         elif note[i]['notetype'] == 'long':     #long
@@ -200,6 +274,24 @@ while True:
             if se[note[i]['notese']] == 'fever_note_flick.wav':
                 note[i]['noteproperty'] = 'fever'
                 note[i]['notetype'] = 'flick'
+            if se[note[i]['notese']] == 'fever_slide_a.wav': #special case like music 113
+                note[i]['noteproperty'] = 'fever'
+                note[i]['notetype'] = 'slidea'
+            if se[note[i]['notese']] == 'fever_slide_b.wav':
+                note[i]['noteproperty'] = 'fever'
+                note[i]['notetype'] = 'slideb'
+            if se[note[i]['notese']] == 'fever_slide_end_a.wav': #special case like music 015
+                note[i]['noteproperty'] = 'fever'
+                note[i]['notetype'] = 'slideaend'
+            if se[note[i]['notese']] == 'fever_slide_end_b.wav':
+                note[i]['noteproperty'] = 'fever'
+                note[i]['notetype'] = 'slidebend'
+            if se[note[i]['notese']] == 'fever_note_slide_a.wav': #special case like music 024
+                note[i]['noteproperty'] = 'fever'
+                note[i]['notetype'] = 'slidea'
+            if se[note[i]['notese']] == 'fever_note_slide_end_a.wav':
+                note[i]['noteproperty'] = 'fever'
+                note[i]['notetype'] = 'slideaend'
 
         #print(note[i])
 
@@ -215,6 +307,7 @@ savedtiming = 0
 savedbeat = 0
 for i in range(len(sortednote)):
     sortednote[i]['notebeat'] *= 4
+    print(sortednote[i])
     if sortednote[i]['noteproperty'] == 'bpmchange':
         savedtiming = savedtiming + (sortednote[i]['notebeat']-savedbeat)*bitsec
         savedbeat = sortednote[i]['notebeat']
@@ -268,4 +361,6 @@ if True:    #convert to my simulator
 fr.close()
 fw.close()
 
+if errorinbms == 1:
+    print("error in bms")
 
