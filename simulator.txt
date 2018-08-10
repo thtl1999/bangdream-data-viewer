@@ -14,24 +14,52 @@ Create Event:
 
 execute code:
 
-global.se[1] = caster_load("data\normal.wav");
-global.se[2] = caster_load("data\flick.wav");
-global.se[3] = caster_load("data\normal.wav");
-global.se[4] = caster_load("data\normal.wav");
-global.se[5] = caster_load("data\normal.wav");
-global.se[6] = caster_load("data\normal.wav");
-global.se[7] = caster_load("data\normal.wav");
-global.se[8] = caster_load("data\normal.wav");
-global.se[9] = caster_load("data\normal.wav");
-global.se[10] = caster_load("data\normal.wav");
-global.se[11] = caster_load("data\normal.wav");
-global.se[12] = caster_load("data\flick.wav");
-global.se[13] = caster_load("data\flick.wav");
+//initialize the DLL
+sinBassDefine();
+
+//initialize the sound system and define the path of the bass.dll
+sinBassInit("bass.dll");
+
+global.se[1] = sinBassStreamLoad("data\normal.wav");
+global.se[2] = sinBassStreamLoad("data\flick.wav");
+global.se[3] = sinBassStreamLoad("data\normal.wav");
+global.se[4] = sinBassStreamLoad("data\normal.wav");
+global.se[5] = sinBassStreamLoad("data\normal.wav");
+global.se[6] = sinBassStreamLoad("data\normal.wav");
+global.se[7] = sinBassStreamLoad("data\normal.wav");
+global.se[8] = sinBassStreamLoad("data\normal.wav");
+global.se[9] = sinBassStreamLoad("data\normal.wav");
+global.se[10] = sinBassStreamLoad("data\normal.wav");
+global.se[11] = sinBassStreamLoad("data\normal.wav");
+global.se[12] = sinBassStreamLoad("data\flick.wav");
+global.se[13] = sinBassStreamLoad("data\flick.wav");
+
 
 global.musicname = "086";
 global.scoretype = "ex";
 global.musicname = get_string("music name code","086");
-global.music = caster_load("data\music\bgm"+global.musicname+".ogg");
+
+
+//special scoretype if +
+if string_length(global.musicname) > 3{
+if string_char_at(global.musicname,4) == '+'
+{
+    global.scoretype = "sp";
+    global.musicname = string_delete(global.musicname,4,1);
+    //show_message(global.musicname);
+}}
+
+
+if file_exists("data\music\bgm"+global.musicname+".mp3")
+{
+    global.music = sinBassStreamLoad("data\music\bgm"+global.musicname+".mp3");
+}
+else
+{
+    global.music = sinBassStreamLoad("data\music\bgm"+global.musicname+".ogg");
+}
+//show_message(sinBassStreamGetPitch(global.music));
+
 room_caption = "BanG! simulator";
 
 ini_open("settings.ini");
@@ -49,7 +77,24 @@ global.musicvol = ini_read_real("Music","Musicvol",1)/100;
 global.notesize = ini_read_real("Display","Notesize",100)/100;
 global.offset = ini_read_real("Music","Offset",0);
 global.notespeed = ini_read_real("Display","Notespeed",10)/6400;
+global.windowx = ini_read_real("Display","Windowx",1280);
+global.windowy = ini_read_real("Display","Windowy",720);
+
+global.FPS = ini_read_real("Display","FPS",100);
+global.Sameline = ini_read_real("Settings","Sameline",1);
+global.Color = ini_read_real("Settings","Color",1);
 ini_close();
+
+global.notespeed = global.notespeed/((global.FPS/100)*(global.FPS/100)*(global.FPS/100));
+global.flickFPS = global.FPS*7;
+
+//sound vol
+for(i=1;i<14;i=i+1)
+{
+    sinBassStreamSetVolume(global.se[i],global.sevol);
+}
+sinBassStreamSetVolume(global.music,global.musicvol);
+
 
 //The bounding box order is written [left,right,top,bottom]. It should be [left,top,right,bottom]
 importsp = sprite_add("data\note_flick.png",1,0,0,0,0);
@@ -130,9 +175,24 @@ if (importsp != -1) sprite_replace(note_flick6,"data\note_flick_6.png",1,0,0,spr
 importsp = sprite_add("data\note_flick_7.png",1,0,0,0,0);
 if (importsp != -1) sprite_replace(note_flick7,"data\note_flick_7.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
 
+importsp = sprite_add("data\note_gray_1.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_gray1,"data\note_gray_1.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_gray_2.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_gray2,"data\note_gray_2.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_gray_3.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_gray3,"data\note_gray_3.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_gray_4.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_gray4,"data\note_gray_4.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_gray_5.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_gray5,"data\note_gray_5.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_gray_6.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_gray6,"data\note_gray_6.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_gray_7.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_gray7,"data\note_gray_7.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
 
 
 global.longnotewidth = sprite_get_width(note_long);
+global.flicknotewidth = sprite_get_width(note_flick);
     
 /*
 global.noteindex[0] = note_normal;
@@ -180,7 +240,15 @@ global.flicksprite[4] = note_flick4;
 global.flicksprite[5] = note_flick5;
 global.flicksprite[6] = note_flick6;
 global.flicksprite[7] = note_flick7;
-    
+
+global.graysprite[1] = note_gray1;
+global.graysprite[2] = note_gray2;
+global.graysprite[3] = note_gray3;
+global.graysprite[4] = note_gray4;
+global.graysprite[5] = note_gray5;
+global.graysprite[6] = note_gray6;
+global.graysprite[7] = note_gray7;
+
 //pre calculate
 global.sizecompare = bdistance/tdistance;
 global.laneheight = global.by-global.ty;
@@ -194,9 +262,12 @@ for(t=0;h < global.by;t=t+1)
     h = global.ty + 0.5*global.notespeed*t*t*t;
     global.yprecoor[t] = h;
     percent = (h-global.ty)/global.laneheight;
-    global.widthpercent[t] = (global.longnotewidth/3.2)*global.notesize*percent; //this decide width of long/slide thickness
     global.notemovepercent[t] = percent;
-    global.realnotesize[t] = global.notemovepercent[t]*global.notesize;
+    global.realnotesize[t] = ((percent)*0.9 + 0.06)*global.notesize;//notesize for t
+    //global.flickarrowcoor[t] = global.yprecoor[t] - global.realnotesize[t]*global.flicknotewidth*0.6;
+    //show_message(string(percent));
+    global.widthpercent[t] = (global.longnotewidth/3.2)*global.realnotesize[t]; //this decide width of long/slide thickness
+
     for(i=1;i<=7;i=i+1)
     {
         xmove = global.bx[i] - global.tx[i];
@@ -204,35 +275,18 @@ for(t=0;h < global.by;t=t+1)
         //global.xsubwp[i,t] = global.xprecoor[i,t] - global.widthpercent[t];
         //global.xaddwp[i,t] = global.xprecoor[i,t] + global.widthpercent[t];
     }
-}
-global.notespeedtime = t;
+    
+    for(i=0;iexecute code:
 
-/*
-//(old)calculate note timing
-h = 0;
-t =0;
-while(1)
-{
-    h = global.ty + 0.5*global.notespeed*t*t*t;
-    t = t+1;
-    if (h > global.by)
-    {
-        break;
-    }
-}
-global.notespeedtime = t
-//note timing calculate finish*/
+global.mainroom2 = room_add();
+room_set_width(global.mainroom2, global.windowx);
+room_set_height(global.mainroom2, global.windowy);
+room_set_persistent(global.mainroom2, false);
 
-/* function in note object for coding
-percent = (y-global.ty)/global.laneheight;
-x = global.tx[lane]+xmove*percent;
-y = global.ty + global.notespeed*0.5*t*t*t;
-xmove = global.bx[lane]-global.tx[lane];
-w = (global.longnotewidth/3.2)*global.notesize;
-*/
-//show_message(string(t));
+room_instance_add(global.mainroom2,global.windowx/2,global.windowy/10*7,waitob);
 
-go to room mainroom with transition effect 
+room_goto(global.mainroom2);
+
 ______________________________________________________
 
 Information about object: maincontrol
@@ -248,7 +302,7 @@ Create Event:
 
 execute code:
 
-room_caption = "BanG! simulator Beta4";
+room_caption = "BanG! simulator Beta8";
 text = file_text_open_read("data\score\"+global.musicname+global.scoretype+".txt");
 
 global.musicoffset = file_text_read_real(text);
@@ -256,11 +310,13 @@ file_text_readln(text);
 bpm = file_text_read_real(text);
 bpmob = instance_create(0,0,bpmtextob);
 bpmob.bpm = bpm;
-bpmob.alarm[0] = 1;
+bpmob.starttiming = 1;
 bitsec = 6000/bpm
 global.combo = 0;
 global.bpmtext = 0;
-versionoffset = 1;  //offset changes when code changes
+versionoffset = 0;  //offset changes when code changes
+samelinebeat = -1;
+samelinelane = -1;
 //prebpmsec = 0;
 
 slideatemp = -1;
@@ -283,13 +339,13 @@ while (1)
     
     if (currenttype == 20)//bpm change and make bpm display object
     {
-        global.offset += currentbit*bitsec;
+        versionoffset += currentbit*bitsec;
         bpm = file_text_read_real(text);
         bitsec = 6000/bpm;
-        global.offset += - currentbit*bitsec;
+        versionoffset += - currentbit*bitsec;
         bpmob = instance_create(0,0,bpmtextob);
         bpmob.bpm = bpm;
-        bpmob.alarm[0] = bitsec*currentbit + global.offset - global.notespeedtime
+        bpmob.starttiming = (versionoffset + bitsec*currentbit + global.offset*global.FPS/100 - global.notespeedtime*100/global.FPS)*10;
         continue;
     }
     
@@ -299,7 +355,7 @@ while (1)
         currentlane = file_text_read_real(text);
         currentnote = instance_create(global.tx[currentlane],global.ty,noteob);
         currentnote.lane = currentlane;
-        currentnote.alarm[0] = versionoffset + bitsec*currentbit + global.offset - global.notespeedtime;
+        currentnote.starttiming = (versionoffset + bitsec*currentbit + global.offset*global.FPS/100 - global.notespeedtime*100/global.FPS)*10;
         currentnote.sprite_index = global.longsprite[currentlane];
         currentnote.type = currenttype;
         if (currenttype == 14){currentnote.type = 9;}
@@ -307,7 +363,7 @@ while (1)
         
         currentnote = instance_create(global.tx[currentlane],global.ty,noteob);//make second(end) note
         currentnote.lane = currentlane;
-        currentnote.alarm[0] = versionoffset + bitsec*longbit + global.offset - global.notespeedtime;
+        currentnote.starttiming = (versionoffset + bitsec*longbit + global.offset*global.FPS/100 - global.notespeedtime*100/global.FPS)*10;
         if (currenttype == 14){currenttype = 2;}
         currentnote.type = currenttype;
         currentnote.child = longnotetemp;
@@ -355,12 +411,12 @@ while (1)
         
         currentnote.type = currenttype;
         currentnote.lane = currentlane;
-        currentnote.alarm[0] = versionoffset + bitsec*currentbit + global.offset - global.notespeedtime;
+        currentnote.starttiming = (versionoffset + bitsec*currentbit + global.offset*global.FPS/100 - global.notespeedtime*100/global.FPS)*10;
         
         
         
         //music
-        if (currenttype == 0) {currentnote.alarm[0] += global.notespeedtime + global.musicoffset -global.offset;}
+        if (currenttype == 0) {currentnote.starttiming += (global.notespeedtime*100/global.FPS + global.musicoffset*global.FPS/100 -global.offset*global.FPS/100)*10;}
         
                 
         //error correction (start slide with slide_among)
@@ -368,6 +424,7 @@ while (1)
         {slideatemp = -1;}
         if (currenttype == 13 || currenttype == 8)
         {slidebtemp = -1;}
+        
         
     }
     
@@ -393,8 +450,32 @@ while (1)
     //if (currenttype == 25){currentnote.sprite_index = global.longsprite[currentlane];}
     //if (currenttype == 26){currentnote.sprite_index = global.flicksprite[currentlane];}
     
+    //gray color
+    if (global.Color == 1 && currentnote.sprite_index == global.normalsprite[currentlane] && currentbit mod 0.5 != 0)
+    {
+        currentnote.sprite_index = global.graysprite[currentlane];
+    }
+    //same line
+    if (global.Sameline == 1 && currenttype != 4 && currenttype != 7 && currenttype != 0)
+    {
+        if (samelinebeat == currentbit)//make line
+        {
+            currentnote.issameline = samelinelane;
+        }
+        else //update beat
+        {
+            samelinebeat = currentbit;
+            samelinelane = currentlane;
+        }
+    }
+    
+    
     //show_message(string_char_at(string11,4));
+    //show_message(string(currentnote.starttiming));
 }
+
+//show_message(string(global.notespeedtime*100/global.FPS));
+global.basetime = current_time;
 
 file_text_close(text);
 
@@ -430,36 +511,42 @@ drawstart = 0;
 wp = global.widthpercent[0];
 percent = 0;
 t = 0;
-
-
-Alarm Event for alarm 0:
-
-execute code:
-
-if (type != 0)
-{
-    id.visible = 1;
-    //xmove = global.bx[lane]-global.tx[lane];
-    t = 0;
-    start = 1;
-}
-else//music start object
-{
-    alarm[1] = 1;
-}
-depth = 10;
-
-Alarm Event for alarm 1:
-
-execute code:
-
-caster_play(global.music,global.musicvol,1);
+starttiming = 0;
+isflick = 0;
+issameline = 0;
+depth = id;
 
 Step Event:
 
 execute code:
 
-if (start == 1)
+if (start == 0)
+{
+    if (current_time - global.basetime >= starttiming)
+    {
+        if (type != 0)
+        {
+            id.visible = 1;
+            //xmove = global.bx[lane]-global.tx[lane];
+            t = 0;
+            start = 1;
+            
+            //flick recog
+            if (type == 2 || type == 12 || type == 13 || type == 14 || type == 26)
+            {
+                isflick = 1;
+            }
+
+        }
+        else//music start object
+        {
+            sinBassStreamPlay(global.music);
+            //is there any way to add extra time when musicplay code execute?
+            instance_destroy();
+        }
+    }
+}
+else
 {
 
     
@@ -476,8 +563,10 @@ if (start == 1)
     
     if (t == global.notespeedtime)
     {
-        caster_play(global.se[type],global.sevol,1);
+        //caster_play(global.se[type],global.sevol,1);
+        sinBassStreamPlay(global.se[type]);
         //show_message(string(t));
+        //show_message(string(current_time));
         if (child != 0)
         {with (child){instance_destroy();}}
         global.combo += 1;
@@ -493,15 +582,13 @@ Draw Event:
 execute code:
 
 //draw_sprite(sprite_index,-1,x,y);
-if (start == 1)
-{
-    draw_sprite_ext(sprite_index,-1,x,y,global.realnotesize[t],global.realnotesize[t],0,c_white,1);
-}
 
 if (!instance_exists(child) && child != 0)
 {
     child = instance_create(global.bx[childlane],global.by,shadowob);
-    child.hspeed = (global.bx[lane]-child.x)/(global.notespeedtime - t + alarm[0]);
+    timetemp = 0;
+    if (start != 1) {timetemp = (starttiming - (current_time - global.basetime))/10 * global.FPS/100;}
+    child.hspeed = (global.bx[lane]-child.x)/(global.notespeedtime - t + timetemp);
 }
 
 if (instance_exists(child) && child != 0)
@@ -514,17 +601,35 @@ if (instance_exists(child) && child != 0)
         xsubwp = x - wp;
         xaddwp = x + wp;
         
-        draw_set_color(make_color_rgb(118,234,147));
-        draw_set_alpha(0.5);
+        //depth = 30;
+        //draw_set_color(make_color_rgb(118,234,147));
+        draw_set_color(make_color_rgb(59,159,97));
+        draw_set_alpha(0.6);
         draw_triangle(xsubwp,y,xaddwp,y,child.x-(child.wp),child.y,0);
         draw_triangle(child.x-(child.wp),child.y,child.x+(child.wp),child.y,xaddwp,y,0);
         
-        draw_set_alpha(0.5);
-        draw_line_width(xsubwp,y,child.x-(child.wp),child.y,3);
-        draw_line_width(xaddwp,y,child.x+(child.wp),child.y,3);
+        
+        draw_set_alpha(0.8);
+        draw_line_width(xsubwp,y,child.x-(child.wp),child.y,2);
+        draw_line_width(xaddwp,y,child.x+(child.wp),child.y,2);
     }
 }
 
+if (start == 1)
+{
+    if (issameline > 0)
+    {
+        draw_line_width_color(global.xprecoor[issameline,t],y,x,y,1+global.notemovepercent[t]*8,c_white,c_white);
+    }
+
+    //depth = -9999;
+    //texture_set_interpolation(true);
+    draw_sprite_ext(sprite_index,-1,x,y,global.realnotesize[t],global.realnotesize[t],0,c_white,1);
+    if (isflick == 1)
+    {
+        draw_sprite_ext(note_flickarrow,-1,x,global.flickarrowmove[t,current_time mod (global.flickFPS)],global.realnotesize[t],global.realnotesize[t],0,c_white,1);
+    }
+}
 
 
 ______________________________________________________
@@ -561,10 +666,44 @@ Persistent: false
 Parent: 
 Mask: 
 
-Alarm Event for alarm 0:
+Step Event:
 
 execute code:
 
-global.bpmtext = bpm;
+if (current_time - global.basetime >= starttiming)
+{
+    global.bpmtext = bpm;
+}
 
+______________________________________________________
+
+Information about object: waitob
+Sprite: startsprite
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Mask: 
+
+Create Event:
+
+execute code:
+
+back = background_add("data\background.png", 0, 0);//load background 
+background_index[0] = back;
+background_xscale[0] = room_width/background_width[0];
+background_yscale[0] = room_height/background_height[0];
+background_visible[0] = true;
+room_speed = global.FPS;
+
+if (room_height > 1000)
+{
+    window_set_position(100,100);
+}
+
+Key Press Event for Key:
+
+create instance of object maincontrol at position (0,0)
+destroy the instance
 ______________________________________________________
