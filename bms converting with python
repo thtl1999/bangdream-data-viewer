@@ -23,7 +23,7 @@ if musicnamecode2.find('music') != -1:
         #responsemp3 = urllib.request.urlretrieve('http://res.bangdream.ga/assets/sound/bgm'+musicname+'.mp3','music/'+musicname+'.mp3')
         #mp3data = responsemp3.read()
         #f5.close()
-        mp3down = requests.get('http://res.bandori.ga/assets/sound/bgm'+musicnamecode+'.mp3')
+        mp3down = requests.get('http://res.bandori.ga/assets/sound/bgm'+musicnamecode+'_rip/bgm' + musicnamecode + '.mp3')
         f5.write(mp3down.content)
         f5.close()
 else:
@@ -45,7 +45,7 @@ if isspecialchart == 1: #check if request special
         data = req.json()
         musicnamestring = data["chartAssetBundleName"]
         req = requests.get(
-            'https://res.bandori.ga/assets/musicscore/' + musicnamecode + '_' + musicnamestring + '_special.txt')
+            'https://res.bandori.ga/assets/musicscore/' + musicnamecode + '_rip/' + musicnamestring + '_special.txt')
         html = req.text
         f1 = open('scorebms/' + musicnamecode + 'sp.txt', 'w')
         f1.write(html)
@@ -59,7 +59,7 @@ else:
         req = requests.get('https://api.bandori.ga/v1/jp/music/'+musicnamecode)
         data = req.json()
         musicnamestring = data["chartAssetBundleName"]
-        req = requests.get('https://res.bandori.ga/assets/musicscore/'+musicnamecode+'_'+musicnamestring+'_expert.txt')
+        req = requests.get('https://res.bandori.ga/assets/musicscore/'+musicnamecode+'_rip/'+musicnamestring+'_expert.txt')
         html = req.text
         f1 = open('scorebms/'+musicnamecode+'ex.txt','w')
         f1.write(html)
@@ -184,13 +184,14 @@ while True:
 
         # error correction
         if not note[i]['notese'] in se:
-            print('error')
-            errorinbms = 1
-            #note[i]['noteproperty'] = 'none'
-            for secode, sename in se.items():
-                if sename == 'bd.wav':
-                    note[i]['notese'] = secode
-            print(note[i]['notese'])
+            if not note[i]['notelane'] == 0: #if this is not special note
+                print('error')
+                errorinbms = 1
+                #note[i]['noteproperty'] = 'none'
+                for secode, sename in se.items():
+                    if sename == 'bd.wav':
+                        note[i]['notese'] = secode
+                print(note[i]['notese'])
 
 
         if note[i]['notelane'] == 0:                #handle special type of note
