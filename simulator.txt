@@ -1,4 +1,3 @@
-
 made with game maker 8.1
 
 Information about object: precontrol
@@ -86,7 +85,7 @@ global.Color = ini_read_real("Settings","Color",1);
 ini_close();
 
 global.notespeed = global.notespeed/((global.FPS/100)*(global.FPS/100)*(global.FPS/100));
-global.flickFPS = global.FPS*7;
+global.flickFPS = global.FPS/3;
 
 //sound vol
 for(i=1;i<14;i=i+1)
@@ -174,6 +173,8 @@ importsp = sprite_add("data\note_flick_6.png",1,0,0,0,0);
 if (importsp != -1) sprite_replace(note_flick6,"data\note_flick_6.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
 importsp = sprite_add("data\note_flick_7.png",1,0,0,0,0);
 if (importsp != -1) sprite_replace(note_flick7,"data\note_flick_7.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+importsp = sprite_add("data\note_flick_top.png",1,0,0,0,0);
+if (importsp != -1) sprite_replace(note_flickarrow,"data\note_flick_top.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
 
 importsp = sprite_add("data\note_gray_1.png",1,0,0,0,0);
 if (importsp != -1) sprite_replace(note_gray1,"data\note_gray_1.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
@@ -304,6 +305,8 @@ execute code:
 
 room_caption = "BanG! simulator Beta8";
 text = file_text_open_read("data\score\"+global.musicname+global.scoretype+".txt");
+//font_add(name,size,bold,italic,first,last)
+global.tick = 0;
 
 global.musicoffset = file_text_read_real(text);
 file_text_readln(text);
@@ -476,16 +479,26 @@ while (1)
 
 //show_message(string(global.notespeedtime*100/global.FPS));
 global.basetime = current_time;
+//global.basetime2 = current_time;
+global.simulstart = 1;
 
 file_text_close(text);
 
 Draw Event:
 
+set the font for drawing text to font0 and align left
 execute code:
 
 //draw_text_color
+
+
 draw_text_color(4*room_width/5,20+room_height/3,"bpm:"+string(global.bpmtext),c_white,c_white,c_white,c_white,1);
 draw_text_color(4*room_width/5,-20+room_height/3,"combo:"+string(global.combo),c_white,c_white,c_white,c_white,1);
+
+//draw_text_transformed_color(5*room_width/6,20+room_height/3,"bpm:"+string(global.bpmtext),
+//2,2,0,c_white,c_white,c_white,c_white,1);
+//draw_text_transformed_color(5*room_width/6,-20+room_height/3,"combo:"+string(global.combo),
+//2,2,0,c_white,c_white,c_white,c_white,1);
 
 ______________________________________________________
 
@@ -627,7 +640,7 @@ if (start == 1)
     draw_sprite_ext(sprite_index,-1,x,y,global.realnotesize[t],global.realnotesize[t],0,c_white,1);
     if (isflick == 1)
     {
-        draw_sprite_ext(note_flickarrow,-1,x,global.flickarrowmove[t,current_time mod (global.flickFPS)],global.realnotesize[t],global.realnotesize[t],0,c_white,1);
+        draw_sprite_ext(note_flickarrow,-1,x,global.flickarrowmove[t,global.tick mod (global.flickFPS)],global.realnotesize[t],global.realnotesize[t],0,c_white,1);
     }
 }
 
@@ -690,6 +703,8 @@ Create Event:
 
 execute code:
 
+global.tick = 0;
+global.simulstart = 0;
 back = background_add("data\background.png", 0, 0);//load background 
 background_index[0] = back;
 background_xscale[0] = room_width/background_width[0];
@@ -702,8 +717,46 @@ if (room_height > 1000)
     window_set_position(100,100);
 }
 
+videorecord = 0;
+
+
+Step Event:
+
+execute code:
+
+if (videorecord == 1)
+{
+    vcapture_frame();
+    if (global.simulstart == 1)
+    {
+        global.basetime = current_time - 1000*global.tick/global.FPS;
+    }
+}
+global.tick = global.tick + 1;
+
+
 Key Press Event for Key:
 
+set variable global.tick to 0
 create instance of object maincontrol at position (0,0)
-destroy the instance
+blend the sprite with color 16777215 and alpha value 0
+Key Press Event for R-key Key:
+
+execute code:
+
+vcapture_init();
+videorecord = 1;
+vcapture_begin( window_handle(), "123.avi", global.FPS);
+
+Key Press Event for S-key Key:
+
+execute code:
+
+if (videorecord == 1)
+{
+    vcapture_save();
+    videorecord = 0;
+}
+
+
 ______________________________________________________
