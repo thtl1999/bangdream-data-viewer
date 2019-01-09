@@ -293,13 +293,26 @@ while True:
             if se[note[i]['notese']] == 'fever_note_slide_end_a.wav':
                 note[i]['noteproperty'] = 'fever'
                 note[i]['notetype'] = 'slideaend'
+            if se[note[i]['notese']] == 'fever_note_slide_b.wav': #special case like music 054
+                note[i]['noteproperty'] = 'fever'
+                note[i]['notetype'] = 'slideb'
 
-        #print(note[i])
+        print(note[i])
 
 #print(note)
 #sort notes by beat to calculate timing (bpm change need sort)
-
 sortednote = sorted(note,key=lambda k: k['notebeat'])
+#special sort for like bgm153. slide end should be first if in same beat
+specialsort = ['slideaend','slidebend','slideaendflick','slidebendflick']
+for i in range(len(sortednote) - 1):
+    if sortednote[i]['notebeat'] == sortednote[i+1]['notebeat']:
+        if sortednote[i+1]['notetype'] in specialsort:
+            if not sortednote[i]['notetype'] in specialsort:
+                sortednote[i], sortednote[i+1] = sortednote[i+1], sortednote[i]
+                print('!!!! special sort')
+
+
+
 #print(sortednote)
 
 #calculate timing
