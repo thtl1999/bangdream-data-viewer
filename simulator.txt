@@ -82,6 +82,17 @@ global.windowy = ini_read_real("Display","Windowy",720);
 global.FPS = ini_read_real("Display","FPS",100);
 global.Sameline = ini_read_real("Settings","Sameline",1);
 global.Color = ini_read_real("Settings","Color",1);
+
+global.effectenable = ini_read_real("Effect","EffectEnable",0);
+global.effectsize = ini_read_real("Effect","Size",1);
+global.effectnx = ini_read_real("Effect","Normalx",300);
+global.effectny = ini_read_real("Effect","Normaly",589);
+global.effectfx = ini_read_real("Effect","Flickx",300);
+global.effectfy = ini_read_real("Effect","Flicky",589);
+global.effectsx = ini_read_real("Effect","Slidex",200);
+global.effectsy = ini_read_real("Effect","Slidey",589);
+global.effectax = ini_read_real("Effect","Amongx",300);
+global.effectay = ini_read_real("Effect","Amongy",589);
 ini_close();
 
 global.notespeed = global.notespeed/((global.FPS/100)*(global.FPS/100)*(global.FPS/100));
@@ -279,12 +290,93 @@ for(t=0;h < global.by;t=t+1)
     
     for(i=0;iexecute code:
 
+
+if (global.effectenable == 1)
+{//effect sprite loads
+
+i=0;
+normaleffectdir[i] = file_find_first(working_directory + "\data\effect\normal\*.png",0);
+//show_message(program_directory);
+if (normaleffectdir[i] != "")
+{   
+    //importsp = sprite_add("data\effect\normal\" + normaleffectdir[0],1,0,0,0,0);
+    while(normaleffectdir[i] != "")
+    {
+        //importsp = sprite_add(normaleffectdir[i],i,0,0,0,0);
+        //sprite_set_offset(importsp,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+        //show_message(normaleffectdir[i]);
+        //global.normaleffectsp[i] = sprite_add("data\effect\normal\" + normaleffectdir[i],1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+        global.normaleffectsp[i] = sprite_add("data\effect\normal\" + normaleffectdir[i],1,0,0,global.effectnx,global.effectny);
+        i = i+1;
+        normaleffectdir[i] = file_find_next();
+    }
+    
+    
+}
+global.normaleffectspn = i;
+file_find_close();
+
+i=0;
+flickeffectdir[i] = file_find_first(working_directory + "\data\effect\flick\*.png",0);
+//show_message(program_directory);
+if (flickeffectdir[i] != "")
+{   
+    //importsp = sprite_add("data\effect\flick\" + flickeffectdir[0],1,0,0,0,0);
+    while(flickeffectdir[i] != "")
+    {
+        //importsp = sprite_add(normaleffectdir[i],i,0,0,0,0);
+        //sprite_set_offset(importsp,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+        //show_message(normaleffectdir[i]);
+        //global.normaleffectsp[i] = sprite_add("data\effect\normal\" + normaleffectdir[i],1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+        global.flickeffectsp[i] = sprite_add("data\effect\flick\" + flickeffectdir[i],1,0,0,global.effectfx,global.effectfy);
+        i = i+1;
+        flickeffectdir[i] = file_find_next();
+    }
+    
+    
+}
+global.flickeffectspn = i;
+file_find_close();
+
+
+
+i=0;
+slideeffectdir[i] = file_find_first(working_directory + "\data\effect\slide\*.png",0);
+//show_message(program_directory);
+if (slideeffectdir[i] != "")
+{   
+    //importsp = sprite_add("data\effect\slide\" + slideeffectdir[0],1,0,0,0,0);
+    while(slideeffectdir[i] != "")
+    {
+        //importsp = sprite_add(normaleffectdir[i],i,0,0,0,0);
+        //sprite_set_offset(importsp,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+        //show_message(normaleffectdir[i]);
+        //global.normaleffectsp[i] = sprite_add("data\effect\normal\" + normaleffectdir[i],1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+        global.slideeffectsp[i] = sprite_add("data\effect\slide\" + slideeffectdir[i],1,0,0,global.effectsx,global.effectsy);
+        i = i+1;
+        slideeffectdir[i] = file_find_next();
+    }
+    
+}
+global.slideeffectspn = i;
+file_find_close();
+
+
+}
+
+//importsp = sprite_add("data\note_normal_1.png",1,0,0,0,0);
+//if (importsp != -1) sprite_replace(note_normal1,"data\note_normal_1.png",1,0,0,sprite_get_width(importsp)/2,sprite_get_height(importsp)/2);
+
+//working_directory + 
+execute code:
+
 global.mainroom2 = room_add();
 room_set_width(global.mainroom2, global.windowx);
 room_set_height(global.mainroom2, global.windowy);
 room_set_persistent(global.mainroom2, false);
 
 room_instance_add(global.mainroom2,global.windowx/2,global.windowy/10*7,waitob);
+//room_instance_add(global.mainroom2,global.windowx/2,global.windowy/2,normaleffectob);
 
 room_goto(global.mainroom2);
 
@@ -431,6 +523,12 @@ while (1)
         
     }
     
+    //parent notice
+    if (currentnote.child != 0)
+    {
+        currentnote.child.parent = currentnote;
+    }
+    
     
     //show_message(string(currentbit)+string(currenttype)+string(currentlane));
     
@@ -528,6 +626,9 @@ starttiming = 0;
 isflick = 0;
 issameline = 0;
 depth = id;
+childbot = 0; //for effect
+s = 0 // slide effect sprite number
+parent = 0;
 
 Step Event:
 
@@ -583,6 +684,13 @@ else
         if (child != 0)
         {with (child){instance_destroy();}}
         global.combo += 1;
+        //effect on
+        if (global.effectenable == 1){
+            if (type == 1 || type == 5 || type == 8 || type == 9 || type == 3 || type == 6 || type == 4 || type == 7) instance_create(global.bx[lane],global.by,normaleffectob);
+            if (type == 2 || type == 12 || type == 13 || type == 26) instance_create(global.bx[lane],global.by,flickeffectob);
+            parent.s = s;
+        }
+        //effect on
         instance_destroy();
         exit;
     }
@@ -602,6 +710,12 @@ if (!instance_exists(child) && child != 0)
     timetemp = 0;
     if (start != 1) {timetemp = (starttiming - (current_time - global.basetime))/10 * global.FPS/100;}
     child.hspeed = (global.bx[lane]-child.x)/(global.notespeedtime - t + timetemp);
+    
+    if (global.effectenable == 1)
+    {//for effect
+        childbot = 1;
+    }
+    
 }
 
 if (instance_exists(child) && child != 0)
@@ -625,6 +739,13 @@ if (instance_exists(child) && child != 0)
         draw_set_alpha(0.8);
         draw_line_width(xsubwp,y,child.x-(child.wp),child.y,2);
         draw_line_width(xaddwp,y,child.x+(child.wp),child.y,2);
+    }
+    
+    if (childbot == 1)
+    {
+        draw_sprite_ext(global.slideeffectsp[s],-1,child.x,child.y,global.effectsize,global.effectsize,0,c_white,1);
+        s = s+1;
+        if (s == global.slideeffectspn) {s=0;}
     }
 }
 
@@ -661,12 +782,19 @@ Create Event:
 set variable start to 1
 set variable percent to 1
 set variable wp to global.widthpercent[global.notespeedtime -1]
+set variable i to 0
+execute code:
+
+id.visible = 1;
+
 Step Event:
 
 execute code:
 
-if (x > global.bx[7] || x < global.bx[1])
-{hspeed = 0;}
+if (x > global.bx[7] || x < global.bx[1]) {hspeed = 0;}
+//sprite_index = global.slideeffectsp[i];
+//i=i+1;
+//if (i == global.slideeffectspn) {i=0;}
 
 ______________________________________________________
 
@@ -758,5 +886,108 @@ if (videorecord == 1)
     videorecord = 0;
 }
 
+
+______________________________________________________
+
+Information about object: normaleffectob
+Sprite: 
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Mask: 
+
+Create Event:
+
+execute code:
+
+//object_set_sprite(id,global.normaleffectsp);
+//sprite_index = global.normaleffectsp;
+//image_speed = 1;
+id.visible = 1;
+i=0;
+depth = 105000;
+
+Draw Event:
+
+execute code:
+
+draw_sprite_ext(global.normaleffectsp[i],-1,x,y,global.effectsize,global.effectsize,0,c_white,1);
+//sprite_index = global.normaleffectsp[i];
+i = i+1;
+if (i == global.normaleffectspn) //i=max;
+{
+    instance_destroy();
+    exit;
+}
+
+______________________________________________________
+
+Information about object: flickeffectob
+Sprite: 
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Mask: 
+
+Create Event:
+
+execute code:
+
+//object_set_sprite(id,global.normaleffectsp);
+//sprite_index = global.normaleffectsp;
+//image_speed = 1;
+id.visible = 1;
+i=0;
+depth = 105000;
+
+Draw Event:
+
+execute code:
+
+draw_sprite_ext(global.flickeffectsp[i],-1,x,y,global.effectsize,global.effectsize,0,c_white,1);
+//sprite_index = global.normaleffectsp[i];
+i = i+1;
+if (i == global.flickeffectspn) //i=max;
+{
+    instance_destroy();
+    exit;
+}
+
+______________________________________________________
+
+Information about object: slideeffectob
+Sprite: 
+Solid: false
+Visible: true
+Depth: 0
+Persistent: false
+Parent: 
+Mask: 
+
+Create Event:
+
+execute code:
+
+//object_set_sprite(id,global.normaleffectsp);
+//sprite_index = global.normaleffectsp;
+//image_speed = 1;
+id.visible = 1;
+i=0;
+
+Step Event:
+
+execute code:
+
+sprite_index = global.flickeffectsp[i];
+i = i+1;
+if !(i < global.flickeffectspn) //i=0;
+{
+    instance_destroy();
+    exit;
+}
 
 ______________________________________________________
